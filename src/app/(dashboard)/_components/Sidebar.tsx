@@ -5,16 +5,27 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const navItems = [
+const navPrincipal = [
   {
-    label: "Dashboard",
+    label: "Início",
     href: "/dashboard",
+    exato: true,
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
+  {
+    label: "Calendário",
+    href: "/calendario",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
       </svg>
     ),
   },
@@ -31,12 +42,48 @@ const navItems = [
     ),
   },
   {
-    label: "Cobranças",
-    href: "/cobrancas",
+    label: "Templates",
+    href: "/templates",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-        <line x1="1" y1="10" x2="23" y2="10" />
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    ),
+  },
+  {
+    label: "Workflows",
+    href: "/workflows",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "Outbox",
+    href: "/outbox",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+    ),
+  },
+];
+
+const navSecundario = [
+  {
+    label: "Suporte",
+    href: "/suporte",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     ),
   },
@@ -50,18 +97,33 @@ const navItems = [
       </svg>
     ),
   },
-  {
-    label: "Suporte",
-    href: "/suporte",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    ),
-  },
 ];
+
+function NavLink({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: { label: string; href: string; exato?: boolean; icon: React.ReactNode };
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const ativo = item.exato ? pathname === item.href : pathname.startsWith(item.href);
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+        ativo
+          ? "bg-[#00B3A4] text-white"
+          : "text-[#05326D]/70 hover:bg-[#05326D]/5 hover:text-[#05326D]"
+      }`}
+    >
+      {item.icon}
+      {item.label}
+    </Link>
+  );
+}
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -84,33 +146,20 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         </span>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const ativo =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                ativo
-                  ? "bg-[#00B3A4] text-white"
-                  : "text-[#05326D]/70 hover:bg-[#05326D]/5 hover:text-[#05326D]"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Nav principal */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {navPrincipal.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+        ))}
 
-      {/* Logout */}
-      <div className="px-3 py-4 border-t border-gray-100 shrink-0">
+        {/* Separador */}
+        <div className="my-3 border-t border-gray-100" />
+
+        {navSecundario.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />
+        ))}
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#05326D]/60 hover:bg-red-50 hover:text-red-500 transition-colors"
@@ -122,6 +171,26 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           </svg>
           Sair
         </button>
+      </nav>
+
+      {/* Card plano */}
+      <div className="px-3 pb-4 shrink-0">
+        <div className="rounded-xl bg-[#05326D]/5 border border-[#05326D]/10 p-3.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#00B3A4]" />
+            <span className="text-xs font-semibold text-[#05326D]">Plano Free</span>
+          </div>
+          <p className="text-xs text-[#05326D]/60 leading-snug">
+            30 dias de teste restantes
+          </p>
+          <Link
+            href="/configuracoes"
+            onClick={onNavigate}
+            className="mt-2.5 block text-center text-xs font-semibold text-white bg-[#00B3A4] hover:bg-[#009e91] rounded-lg py-1.5 transition-colors"
+          >
+            Fazer upgrade
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -132,12 +201,12 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop */}
       <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-60 bg-white border-r border-gray-100 z-20">
         <NavContent />
       </aside>
 
-      {/* Mobile: top bar com hamburguer */}
+      {/* Mobile topbar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-20">
         <span className="text-lg tracking-tight select-none">
           <span className="font-bold text-[#05326D]">Vital</span>
@@ -156,15 +225,12 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Mobile: backdrop */}
+      {/* Mobile backdrop */}
       {aberta && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/30 z-30"
-          onClick={() => setAberta(false)}
-        />
+        <div className="md:hidden fixed inset-0 bg-black/30 z-30" onClick={() => setAberta(false)} />
       )}
 
-      {/* Mobile: drawer */}
+      {/* Mobile drawer */}
       <aside
         className={`md:hidden fixed inset-y-0 left-0 w-72 bg-white z-40 transform transition-transform duration-200 ease-in-out ${
           aberta ? "translate-x-0" : "-translate-x-full"

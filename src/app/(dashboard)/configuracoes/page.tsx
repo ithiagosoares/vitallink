@@ -1,15 +1,24 @@
-export default function ConfiguracoesPage() {
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import ConfiguracoesClient from "./_components/ConfiguracoesClient";
+
+export default async function ConfiguracoesPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("nome, email, whatsapp, accepted_terms_at, mensagem_cobranca")
+    .eq("id", user.id)
+    .single();
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#05326D]">Configurações</h1>
-        <p className="text-sm text-[#05326D]/50 mt-0.5">
-          Gerencie as configurações da sua conta
-        </p>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-16 text-center">
-        <p className="text-sm text-[#05326D]/40">Em breve.</p>
-      </div>
-    </div>
+    <ConfiguracoesClient
+      profile={profile ?? { nome: null, email: null, whatsapp: null, accepted_terms_at: null, mensagem_cobranca: null }}
+      userEmail={user.email ?? ""}
+    />
   );
 }
