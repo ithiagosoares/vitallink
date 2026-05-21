@@ -19,6 +19,12 @@ interface Profile {
   mensagem_cobranca: string | null;
 }
 
+interface ConfigPerfil {
+  whatsapp_numero: string | null;
+  whatsapp_conectado: boolean | null;
+  mensagem_padrao: string | null;
+}
+
 function previewMensagem(template: string) {
   return template
     .replace(/{nome_paciente}/g, "Ana Silva")
@@ -92,22 +98,44 @@ function AbaConta({ profile, userEmail }: { profile: Profile; userEmail: string 
 }
 
 // ─── Aba WhatsApp ─────────────────────────────────────────────────────────────
-function AbaWhatsApp() {
-  const [numero, setNumero] = useState("");
-  const [status] = useState<"conectado" | "desconectado">("desconectado");
+function AbaWhatsApp({ configPerfil }: { configPerfil: ConfigPerfil }) {
+  const [numero, setNumero] = useState(configPerfil.whatsapp_numero ?? "");
+  const [conectado] = useState(configPerfil.whatsapp_conectado ?? false);
+  const [loading, setLoading] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
+
+  async function salvar() {
+    setLoading(true);
+    setSucesso(false);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("configuracoes_perfil").upsert(
+      {
+        psicologo_id: user.id,
+        whatsapp_numero: numero,
+        whatsapp_conectado: conectado,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "psicologo_id" }
+    );
+    setLoading(false);
+    setSucesso(true);
+    setTimeout(() => setSucesso(false), 3000);
+  }
 
   return (
     <div className="space-y-5 max-w-lg">
       <div className="flex items-center gap-2.5">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ring-1 ${
-            status === "conectado"
+            conectado
               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
               : "bg-red-50 text-red-600 ring-red-200"
           }`}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${status === "conectado" ? "bg-emerald-500" : "bg-red-500"}`} />
-          {status === "conectado" ? "Conectado" : "Desconectado"}
+          <span className={`w-1.5 h-1.5 rounded-full ${conectado ? "bg-emerald-500" : "bg-red-500"}`} />
+          {conectado ? "Conectado" : "Desconectado"}
         </span>
       </div>
 
@@ -135,19 +163,24 @@ function AbaWhatsApp() {
         </ol>
       </div>
 
-      <button
-        type="button"
-        className="px-5 py-2.5 text-sm font-semibold text-white bg-[#00B3A4] hover:bg-[#009e91] rounded-lg transition-colors"
-      >
-        Salvar e testar conexão
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={salvar}
+          disabled={loading}
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-[#00B3A4] hover:bg-[#009e91] disabled:opacity-60 rounded-lg transition-colors"
+        >
+          {loading ? "Salvando…" : "Salvar e testar conexão"}
+        </button>
+        {sucesso && <span className="text-sm text-emerald-600 font-medium">✓ Salvo!</span>}
+      </div>
     </div>
   );
 }
 
 // ─── Aba Mensagens ────────────────────────────────────────────────────────────
-function AbaMensagens({ mensagemInicial }: { mensagemInicial: string | null }) {
-  const [mensagem, setMensagem] = useState(mensagemInicial ?? MENSAGEM_PADRAO);
+function AbaMensagens({ configPerfil }: { configPerfil: ConfigPerfil }) {
+  const [mensagem, setMensagem] = useState(configPerfil.mensagem_padrao ?? MENSAGEM_PADRAO);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState(false);
 
@@ -157,7 +190,14 @@ function AbaMensagens({ mensagemInicial }: { mensagemInicial: string | null }) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("profiles").update({ mensagem_cobranca: mensagem }).eq("id", user.id);
+    await supabase.from("configuracoes_perfil").upsert(
+      {
+        psicologo_id: user.id,
+        mensagem_padrao: mensagem,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "psicologo_id" }
+    );
     setLoading(false);
     setSucesso(true);
     setTimeout(() => setSucesso(false), 3000);
@@ -355,9 +395,11 @@ function AbaLGPD({ acceptedTermsAt }: { acceptedTermsAt: string | null }) {
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function ConfiguracoesClient({
   profile,
+  configPerfil,
   userEmail,
 }: {
   profile: Profile;
+  configPerfil: ConfigPerfil;
   userEmail: string;
 }) {
   const [abaAtiva, setAbaAtiva] = useState<Aba>("conta");
@@ -400,8 +442,8 @@ export default function ConfiguracoesClient({
       {/* Conteúdo da aba */}
       <div>
         {abaAtiva === "conta" && <AbaConta profile={profile} userEmail={userEmail} />}
-        {abaAtiva === "whatsapp" && <AbaWhatsApp />}
-        {abaAtiva === "mensagens" && <AbaMensagens mensagemInicial={profile.mensagem_cobranca} />}
+        {abaAtiva === "whatsapp" && <AbaWhatsApp configPerfil={configPerfil} />}
+        {abaAtiva === "mensagens" && <AbaMensagens configPerfil={configPerfil} />}
         {abaAtiva === "planos" && <AbaPlanos />}
         {abaAtiva === "lgpd" && <AbaLGPD acceptedTermsAt={profile.accepted_terms_at} />}
       </div>

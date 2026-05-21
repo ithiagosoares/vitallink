@@ -1,13 +1,19 @@
-export default function TemplatesPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#05326D]">Templates</h1>
-        <p className="text-sm text-[#05326D]/50 mt-0.5">Modelos de mensagem para cobranças</p>
-      </div>
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-16 text-center">
-        <p className="text-sm text-[#05326D]/40">Em breve.</p>
-      </div>
-    </div>
-  );
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import TemplatesClient from "./_components/TemplatesClient";
+
+export default async function TemplatesPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: templates } = await supabase
+    .from("templates")
+    .select("id, nome, conteudo, created_at")
+    .eq("psicologo_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return <TemplatesClient templatesIniciais={templates ?? []} />;
 }

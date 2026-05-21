@@ -9,15 +9,37 @@ export default async function ConfiguracoesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nome, email, whatsapp, accepted_terms_at, mensagem_cobranca")
-    .eq("id", user.id)
-    .single();
+  const [profileResult, configResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nome, email, whatsapp, accepted_terms_at, mensagem_cobranca")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("configuracoes_perfil")
+      .select("whatsapp_numero, whatsapp_conectado, mensagem_padrao")
+      .eq("psicologo_id", user.id)
+      .single(),
+  ]);
 
   return (
     <ConfiguracoesClient
-      profile={profile ?? { nome: null, email: null, whatsapp: null, accepted_terms_at: null, mensagem_cobranca: null }}
+      profile={
+        profileResult.data ?? {
+          nome: null,
+          email: null,
+          whatsapp: null,
+          accepted_terms_at: null,
+          mensagem_cobranca: null,
+        }
+      }
+      configPerfil={
+        configResult.data ?? {
+          whatsapp_numero: null,
+          whatsapp_conectado: false,
+          mensagem_padrao: null,
+        }
+      }
       userEmail={user.email ?? ""}
     />
   );
