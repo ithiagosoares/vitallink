@@ -5,6 +5,7 @@ const WHATSAPP_UPGRADE = "5511999999999";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import WhatsAppEmbeddedSignup from "@/components/WhatsAppEmbeddedSignup";
 
 type Aba = "conta" | "whatsapp" | "mensagens" | "planos" | "lgpd";
 
@@ -23,6 +24,7 @@ interface ConfigPerfil {
   whatsapp_numero: string | null;
   whatsapp_conectado: boolean | null;
   mensagem_padrao: string | null;
+  meta_phone_id: string | null;
 }
 
 function previewMensagem(template: string) {
@@ -99,82 +101,24 @@ function AbaConta({ profile, userEmail }: { profile: Profile; userEmail: string 
 
 // ─── Aba WhatsApp ─────────────────────────────────────────────────────────────
 function AbaWhatsApp({ configPerfil }: { configPerfil: ConfigPerfil }) {
-  const [numero, setNumero] = useState(configPerfil.whatsapp_numero ?? "");
-  const [conectado] = useState(configPerfil.whatsapp_conectado ?? false);
-  const [loading, setLoading] = useState(false);
-  const [sucesso, setSucesso] = useState(false);
-
-  async function salvar() {
-    setLoading(true);
-    setSucesso(false);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("configuracoes_perfil").upsert(
-      {
-        psicologo_id: user.id,
-        whatsapp_numero: numero,
-        whatsapp_conectado: conectado,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "psicologo_id" }
-    );
-    setLoading(false);
-    setSucesso(true);
-    setTimeout(() => setSucesso(false), 3000);
-  }
+  const [conectado, setConectado] = useState(configPerfil.whatsapp_conectado ?? false);
+  const [numeroConectado, setNumeroConectado] = useState(
+    configPerfil.whatsapp_numero ?? configPerfil.meta_phone_id ?? null
+  );
 
   return (
-    <div className="space-y-5 max-w-lg">
-      <div className="flex items-center gap-2.5">
-        <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ring-1 ${
-            conectado
-              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-              : "bg-red-50 text-red-600 ring-red-200"
-          }`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${conectado ? "bg-emerald-500" : "bg-red-500"}`} />
-          {conectado ? "Conectado" : "Desconectado"}
-        </span>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-[#05326D] mb-1.5">
-          Número que enviará as cobranças
-        </label>
-        <input
-          type="tel"
-          value={numero}
-          onChange={(e) => setNumero(e.target.value)}
-          placeholder="(11) 99999-9999"
-          className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm text-[#05326D] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00B3A4]/30 focus:border-[#00B3A4] transition"
-        />
-      </div>
-
-      <div className="rounded-xl bg-[#05326D]/5 border border-[#05326D]/10 p-4 space-y-2">
-        <p className="text-sm font-medium text-[#05326D]">Como conectar via Z-API</p>
-        <ol className="space-y-1.5 text-xs text-[#05326D]/70 list-decimal list-inside leading-relaxed">
-          <li>Crie uma conta em <span className="font-medium">z-api.io</span> e obtenha suas credenciais de API.</li>
-          <li>Abra o WhatsApp no celular e acesse <span className="font-medium">Dispositivos vinculados</span>.</li>
-          <li>Escaneie o QR Code exibido no painel da Z-API.</li>
-          <li>Cole o <span className="font-medium">Instance ID</span> e o <span className="font-medium">Token</span> nas configurações de integração.</li>
-          <li>Clique em <span className="font-medium">Testar conexão</span> — o status mudará para Conectado.</li>
-        </ol>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={salvar}
-          disabled={loading}
-          className="px-5 py-2.5 text-sm font-semibold text-white bg-[#00B3A4] hover:bg-[#009e91] disabled:opacity-60 rounded-lg transition-colors"
-        >
-          {loading ? "Salvando…" : "Salvar e testar conexão"}
-        </button>
-        {sucesso && <span className="text-sm text-emerald-600 font-medium">✓ Salvo!</span>}
-      </div>
-    </div>
+    <WhatsAppEmbeddedSignup
+      conectado={conectado}
+      numeroConectado={numeroConectado}
+      onConectado={(phoneNumber) => {
+        setConectado(true);
+        setNumeroConectado(phoneNumber);
+      }}
+      onDesconectado={() => {
+        setConectado(false);
+        setNumeroConectado(null);
+      }}
+    />
   );
 }
 

@@ -17,7 +17,7 @@ export default async function ConfiguracoesPage() {
       .single(),
     supabase
       .from("configuracoes_perfil")
-      .select("whatsapp_numero, whatsapp_conectado, mensagem_padrao")
+      .select("whatsapp_numero, whatsapp_conectado, mensagem_padrao, meta_phone_id")
       .eq("psicologo_id", user.id)
       .single(),
   ]);
@@ -38,6 +38,7 @@ export default async function ConfiguracoesPage() {
           whatsapp_numero: null,
           whatsapp_conectado: false,
           mensagem_padrao: null,
+          meta_phone_id: null,
         }
       }
       userEmail={user.email ?? ""}
