@@ -102,6 +102,46 @@ export default function WhatsAppEmbeddedSignup({
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  async function handleFacebookResponse(response: FBLoginResponse) {
+    if (!response.authResponse?.accessToken) {
+      setLoading(false);
+      if (response.status !== 'connected') {
+        setErro('Conexão cancelada ou não autorizada.');
+      }
+      return;
+    }
+
+    const { accessToken } = response.authResponse;
+    const { phone_number_id, waba_id } = pendingWAData.current;
+
+    if (!phone_number_id || !waba_id) {
+      setLoading(false);
+      setErro(
+        'Não foi possível obter os dados do número. Certifique-se de completar todos os passos do formulário Meta.'
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/whatsapp/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: accessToken, phone_number_id, waba_id }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? 'Erro ao salvar a conexão.');
+      }
+
+      onConectado(json.phone_number ?? phone_number_id);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Erro inesperado.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function conectar() {
     if (!sdkReady || !window.FB) {
       setErro('SDK do Facebook ainda não carregou. Tente novamente em instantes.');
@@ -113,43 +153,14 @@ export default function WhatsAppEmbeddedSignup({
     pendingWAData.current = {};
 
     window.FB.login(
-      async (response) => {
-        if (!response.authResponse?.accessToken) {
+      (response) => {
+        if (response.authResponse) {
+          handleFacebookResponse(response).catch(console.error);
+        } else {
           setLoading(false);
           if (response.status !== 'connected') {
             setErro('Conexão cancelada ou não autorizada.');
           }
-          return;
-        }
-
-        const { accessToken } = response.authResponse;
-        const { phone_number_id, waba_id } = pendingWAData.current;
-
-        if (!phone_number_id || !waba_id) {
-          setLoading(false);
-          setErro(
-            'Não foi possível obter os dados do número. Certifique-se de completar todos os passos do formulário Meta.'
-          );
-          return;
-        }
-
-        try {
-          const res = await fetch('/api/whatsapp/connect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: accessToken, phone_number_id, waba_id }),
-          });
-
-          const json = await res.json();
-          if (!res.ok || !json.success) {
-            throw new Error(json.error ?? 'Erro ao salvar a conexão.');
-          }
-
-          onConectado(json.phone_number ?? phone_number_id);
-        } catch (e) {
-          setErro(e instanceof Error ? e.message : 'Erro inesperado.');
-        } finally {
-          setLoading(false);
         }
       },
       {
