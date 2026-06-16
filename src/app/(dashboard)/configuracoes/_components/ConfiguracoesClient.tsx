@@ -3,7 +3,8 @@
 // Atualize WHATSAPP_UPGRADE com o número real de vendas antes de ir para produção
 const WHATSAPP_UPGRADE = "5511999999999";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import WhatsAppEmbeddedSignup from "@/components/WhatsAppEmbeddedSignup";
 
@@ -256,83 +257,244 @@ function AbaPlanos() {
   );
 }
 
+// ─── Modal Confirmar Exclusão de Conta ────────────────────────────────────────
+function ModalExcluirConta({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const [confirmacao, setConfirmacao] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function handleExcluir() {
+    if (confirmacao !== "EXCLUIR") return;
+    setLoading(true);
+    setErro("");
+    try {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error ?? "Erro ao excluir a conta.");
+      router.push("/login");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro inesperado.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]"
+      onMouseDown={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl">
+        <div className="px-6 pt-6 pb-5 space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+
+          <div className="text-center">
+            <h2 className="text-base font-semibold text-[#05326D]">Excluir minha conta</h2>
+            <p className="mt-1.5 text-sm text-[#05326D]/60 leading-relaxed">
+              Esta ação é <strong className="text-red-500">irreversível</strong>. Todos os seus dados —
+              pacientes, cobranças, configurações e histórico — serão permanentemente excluídos.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[#05326D]/70 mb-1.5">
+              Para confirmar, digite <span className="font-mono font-bold text-red-500">EXCLUIR</span> abaixo:
+            </label>
+            <input
+              type="text"
+              value={confirmacao}
+              onChange={(e) => setConfirmacao(e.target.value)}
+              placeholder="EXCLUIR"
+              autoFocus
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm text-[#05326D] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 transition font-mono"
+            />
+          </div>
+
+          {erro && (
+            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3.5 py-2.5">
+              {erro}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-3 px-6 pb-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 py-2.5 text-sm font-semibold text-[#05326D] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleExcluir}
+            disabled={loading || confirmacao !== "EXCLUIR"}
+            className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            {loading && (
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            )}
+            {loading ? "Excluindo…" : "Excluir tudo"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Aba LGPD ─────────────────────────────────────────────────────────────────
 function AbaLGPD({ acceptedTermsAt }: { acceptedTermsAt: string | null }) {
+  const [modalExcluir, setModalExcluir] = useState(false);
+  const [exportando, setExportando] = useState(false);
+
   const dataAceite = acceptedTermsAt
     ? new Date(acceptedTermsAt).toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
       })
     : null;
 
-  return (
-    <div className="max-w-lg space-y-5">
-      <div className="rounded-xl border border-gray-100 bg-white p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-[#05326D]">Como usamos seus dados</h3>
-        <p className="text-sm text-[#05326D]/70 leading-relaxed">
-          O VitalLink coleta e processa apenas os dados necessários para o funcionamento do serviço:
-          nome, e-mail, WhatsApp e dados dos seus pacientes. Nenhuma informação é compartilhada com
-          terceiros sem o seu consentimento. Todos os dados são armazenados com criptografia e você
-          pode solicitar a exclusão a qualquer momento.
-        </p>
-      </div>
+  async function exportarDados() {
+    setExportando(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setExportando(false); return; }
 
-      {dataAceite && (
-        <div className="rounded-xl border border-gray-100 bg-white p-5">
-          <p className="text-xs font-medium text-[#05326D]/50 uppercase tracking-wide mb-1">
-            Aceite dos termos
-          </p>
-          <p className="text-sm text-[#05326D]">
-            Você aceitou os Termos de Uso e a Política de Privacidade em{" "}
-            <span className="font-medium">{dataAceite}</span>.
+    const [perfil, configPerfil, pacientes, templates, regras] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("configuracoes_perfil")
+        .select("whatsapp_numero, whatsapp_conectado, mensagem_padrao, meta_phone_id, meta_token_connected_at")
+        .eq("psicologo_id", user.id).single(),
+      supabase.from("pacientes").select("nome, whatsapp, valor_sessao, dia_vencimento, status, created_at").eq("psicologo_id", user.id),
+      supabase.from("templates").select("nome, conteudo, created_at").eq("psicologo_id", user.id),
+      supabase.from("regras_cobranca").select("nome, ativa, aplicar_para, created_at").eq("psicologo_id", user.id),
+    ]);
+
+    const exportData = {
+      exportado_em: new Date().toISOString(),
+      perfil: { ...perfil.data, meta_access_token: "[OMITIDO POR SEGURANÇA]" },
+      configuracoes: configPerfil.data,
+      pacientes: pacientes.data ?? [],
+      templates: templates.data ?? [],
+      regras_cobranca: regras.data ?? [],
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vitallink-dados-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportando(false);
+  }
+
+  return (
+    <>
+      <div className="max-w-lg space-y-5">
+        {/* Informativo */}
+        <div className="rounded-xl border border-gray-100 bg-white p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-[#05326D]">Como usamos seus dados</h3>
+          <p className="text-sm text-[#05326D]/70 leading-relaxed">
+            O VitalLink coleta e processa apenas os dados necessários para o funcionamento do serviço:
+            nome, e-mail, WhatsApp e dados dos seus pacientes. Nenhuma informação é compartilhada com
+            terceiros sem o seu consentimento. Todos os dados são armazenados com criptografia.
           </p>
         </div>
-      )}
 
-      <div className="flex flex-wrap gap-3">
-        <a
-          href="/politica-de-privacidade"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-[#00B3A4] hover:underline font-medium"
-        >
-          Política de Privacidade ↗
-        </a>
-        <span className="text-[#05326D]/20">|</span>
-        <a
-          href="/termos-de-uso"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-[#00B3A4] hover:underline font-medium"
-        >
-          Termos de Uso ↗
-        </a>
+        {/* Aceite dos termos */}
+        {dataAceite && (
+          <div className="rounded-xl border border-gray-100 bg-white p-5">
+            <p className="text-xs font-medium text-[#05326D]/50 uppercase tracking-wide mb-1">
+              Aceite dos termos
+            </p>
+            <p className="text-sm text-[#05326D]">
+              Você aceitou os Termos de Uso e a Política de Privacidade em{" "}
+              <span className="font-medium">{dataAceite}</span>.
+            </p>
+          </div>
+        )}
+
+        {/* Links */}
+        <div className="flex flex-wrap gap-3">
+          <a href="/privacidade" target="_blank" rel="noopener noreferrer"
+            className="text-sm text-[#00B3A4] hover:underline font-medium">
+            Política de Privacidade ↗
+          </a>
+          <span className="text-[#05326D]/20">|</span>
+          <a href="/termos" target="_blank" rel="noopener noreferrer"
+            className="text-sm text-[#00B3A4] hover:underline font-medium">
+            Termos de Uso ↗
+          </a>
+        </div>
+
+        {/* Portabilidade */}
+        <div className="rounded-xl border border-gray-100 bg-white p-5 space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[#05326D]">Portabilidade de dados</h3>
+            <p className="text-xs text-[#05326D]/50 mt-1 leading-relaxed">
+              Baixe um arquivo JSON com todos os seus dados cadastrados na plataforma (LGPD, art. 18, V).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={exportarDados}
+            disabled={exportando}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#05326D] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+          >
+            {exportando ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Exportando…
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Exportar meus dados
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Exclusão */}
+        <div className="pt-2 border-t border-gray-100 space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-red-500">Zona de perigo</h3>
+            <p className="text-xs text-[#05326D]/50 mt-1 leading-relaxed">
+              A exclusão da conta é irreversível. Todos os seus pacientes, cobranças e configurações
+              serão permanentemente removidos.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setModalExcluir(true)}
+            className="px-5 py-2.5 text-sm font-semibold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            Excluir minha conta
+          </button>
+        </div>
       </div>
 
-      <div className="pt-2 border-t border-gray-100">
-        <p className="text-xs text-[#05326D]/50 mb-3">
-          A solicitação de exclusão de dados é irreversível. Todos os seus pacientes e cobranças
-          cadastrados serão permanentemente removidos.
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            if (confirm("Tem certeza? Esta ação é irreversível e excluirá todos os seus dados.")) {
-              window.open(
-                `https://wa.me/${WHATSAPP_UPGRADE}?text=${encodeURIComponent("Olá, gostaria de solicitar a exclusão da minha conta e de todos os meus dados no VitalLink.")}`,
-                "_blank"
-              );
-            }
-          }}
-          className="px-5 py-2.5 text-sm font-semibold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-        >
-          Solicitar exclusão dos dados
-        </button>
-      </div>
-    </div>
+      {modalExcluir && <ModalExcluirConta onClose={() => setModalExcluir(false)} />}
+    </>
   );
 }
 

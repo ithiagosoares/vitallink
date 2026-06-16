@@ -4,6 +4,7 @@
 // Authentication → Providers → Email → desmarque "Confirm email"
 
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -162,9 +163,9 @@ export default function LoginPage() {
                   Senha
                 </label>
                 {modo === "entrar" && (
-                  <button type="button" className="text-xs text-[#00B3A4] hover:underline">
+                  <Link href="/recuperar-senha" className="text-xs text-[#00B3A4] hover:underline">
                     Esqueceu a senha?
-                  </button>
+                  </Link>
                 )}
               </div>
               <input
@@ -190,7 +191,7 @@ export default function LoginPage() {
                 <span className="text-xs text-[#05326D]/70 leading-relaxed">
                   Li e concordo com os{" "}
                   <a
-                    href="/termos-de-uso"
+                    href="/termos"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00B3A4] hover:underline font-medium"
@@ -199,7 +200,7 @@ export default function LoginPage() {
                   </a>{" "}
                   e a{" "}
                   <a
-                    href="/politica-de-privacidade"
+                    href="/privacidade"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00B3A4] hover:underline font-medium"
