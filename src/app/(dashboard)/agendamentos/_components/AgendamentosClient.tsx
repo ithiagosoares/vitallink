@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { Template } from "@/lib/templates";
 
 interface Gatilho {
   id: string;
@@ -18,11 +19,6 @@ interface Regra {
   created_at: string;
   gatilhos_regra: Gatilho[];
   regra_pacientes: { paciente_id: string }[];
-}
-
-interface Template {
-  id: string;
-  nome: string;
 }
 
 interface Paciente {

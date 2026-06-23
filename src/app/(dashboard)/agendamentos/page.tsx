@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AgendamentosClient from "./_components/AgendamentosClient";
+import { TEMPLATES } from "@/lib/templates";
 
 export default async function AgendamentosPage() {
   const supabase = await createClient();
@@ -9,7 +10,7 @@ export default async function AgendamentosPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [regrasResult, pacientesResult, templatesResult] = await Promise.all([
+  const [regrasResult, pacientesResult] = await Promise.all([
     supabase
       .from("regras_cobranca")
       .select(
@@ -22,18 +23,13 @@ export default async function AgendamentosPage() {
       .select("id, nome")
       .eq("psicologo_id", user.id)
       .order("nome"),
-    supabase
-      .from("templates")
-      .select("id, nome")
-      .eq("psicologo_id", user.id)
-      .order("nome"),
   ]);
 
   return (
     <AgendamentosClient
       regrasIniciais={regrasResult.data ?? []}
       pacientes={pacientesResult.data ?? []}
-      templates={templatesResult.data ?? []}
+      templates={TEMPLATES}
     />
   );
 }
