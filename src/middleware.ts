@@ -1,10 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const ROTAS_PROTEGIDAS = ["/dashboard", "/pacientes", "/cobrancas", "/configuracoes"];
+const ROTAS_PROTEGIDAS = [
+  "/dashboard",
+  "/pacientes",
+  "/agendamentos",
+  "/templates",
+  "/configuracoes",
+  "/suporte",
+];
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+  const rotaProtegida = ROTAS_PROTEGIDAS.some((r) => pathname.startsWith(r));
+
+  if (!rotaProtegida && pathname !== "/login") {
+    return NextResponse.next({ request });
+  }
+
+  const response = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,9 +40,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
-  const rotaProtegida = ROTAS_PROTEGIDAS.some((r) => pathname.startsWith(r));
 
   if (rotaProtegida && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
