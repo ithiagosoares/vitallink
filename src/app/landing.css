@@ -308,12 +308,11 @@
 .lp .pain-card.in-view { opacity: 1; transform: translateY(0); }
 .lp .pain-card:hover { border-color: rgba(0,179,164,.25); }
 .lp .pain-icon {
-  width: 52px; height: 52px;
-  background: rgba(0,179,164,.1);
-  border-radius: 14px;
+  width: 72px; height: 72px;
+  border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 20px;
-  color: #00B3A4;
+  overflow: hidden;
 }
 .lp .pain-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #fff; }
 .lp .pain-card p { font-size: .9rem; color: rgba(255,255,255,.5); line-height: 1.65; }
