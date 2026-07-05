@@ -390,9 +390,9 @@ export default function Home() {
             <div className="footer-links">
               <a href="#funcionalidades" onClick={(e) => { e.preventDefault(); scrollTo('funcionalidades'); }}>Funcionalidades</a>
               <a href="#precos" onClick={(e) => { e.preventDefault(); scrollTo('precos'); }}>Preços</a>
-              <a href="#">Contato</a>
-              <a href="#">Política de Privacidade</a>
-              <a href="#">Termos de Uso</a>
+              <a href="mailto:contato@vitallink.clinic">Contato</a>
+              <Link href="/privacidade">Política de Privacidade</Link>
+              <Link href="/termos">Termos de Uso</Link>
             </div>
           </div>
         </div>
