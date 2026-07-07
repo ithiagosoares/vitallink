@@ -307,7 +307,7 @@ export default function Home() {
             <div className="visual-glow" />
             <div className="phone-wrap">
               <div className="phone-img">
-                <Image src="/hero-phone.png" alt="App VitalLink no celular" width={280} height={500} style={{ objectFit: 'contain', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} priority />
+                <Image src="/hero-phone.png" alt="App VitalLink no celular" width={420} height={700} style={{ objectFit: 'contain', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} priority />
               </div>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function Home() {
               style={{ transitionDelay: painInView[i] ? `${card.delay}ms` : '0ms' }}
             >
               <div className="pain-icon">
-                <Image src={card.img} alt={card.title} width={72} height={72} style={{ objectFit: 'contain', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
+                <Image src={card.img} alt={card.title} width={200} height={180} style={{ objectFit: 'contain', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
               </div>
               <h3>{card.title}</h3>
               <p>{card.text}</p>
@@ -362,7 +362,7 @@ export default function Home() {
             className={`solution-visual${solutionInView ? ' in-view' : ''}`}
           >
             <div className="solution-img-wrap">
-              <Image src="/solution-dashboard.png" alt="Painel VitalLink" width={560} height={380} style={{ objectFit: 'contain', width: '100%', height: '100%', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
+              <Image src="/solution-dashboard.png" alt="Painel VitalLink" width={800} height={520} style={{ objectFit: 'contain', width: '100%', height: '100%', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
             </div>
           </div>
           <div className={`solution-text${solutionInView ? ' in-view' : ''}`}>
@@ -534,7 +534,7 @@ export default function Home() {
       {/* ── CTA Final ── */}
       <section className="cta-final">
         <div ref={ctaFinalRef} className={`cta-final-inner${ctaFinalInView ? ' in-view' : ''}`}>
-          <Image src="/cta-happy.png" alt="Profissional satisfeita" width={200} height={200} style={{ borderRadius: '50%', marginBottom: 32, border: '3px solid rgba(0,179,164,.3)', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
+          <Image src="/cta-happy.png" alt="Profissional satisfeita" width={340} height={340} style={{ borderRadius: '50%', border: '3px solid rgba(0,179,164,.3)', filter: 'none', mixBlendMode: 'normal', opacity: 1 }} />
           <h2>Sua agenda cheia começa hoje.</h2>
           <p className="cta-final-sub">Junte-se aos profissionais que pararam de cobrar manualmente e começaram a crescer de verdade.</p>
           <Link className="cta-final-btn" href="/login">Quero meus 30 dias grátis</Link>
