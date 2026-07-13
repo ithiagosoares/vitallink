@@ -189,14 +189,22 @@ export default function AgendamentosClient({
     }
 
     if (formGatilhos.length > 0) {
-      await supabase.from("gatilhos_regra").insert(
-        formGatilhos.map((g) => ({
-          regra_id: regraId,
-          dias_offset: g.dias_offset,
-          template_id: g.template_id || null,
-          horario_envio: g.horario_envio,
-        }))
-      );
+      const gatilhosParaInserir = formGatilhos.map((g) => ({
+        regra_id: regraId,
+        dias_offset: Number(g.dias_offset),
+        template_id: g.template_id || null,
+        horario_envio: g.horario_envio,
+      }));
+      console.log("[agendamentos] formGatilhos antes de inserir:", formGatilhos);
+      console.log("[agendamentos] payload enviado ao banco:", gatilhosParaInserir);
+      const { error: gatilhosError } = await supabase
+        .from("gatilhos_regra")
+        .insert(gatilhosParaInserir);
+      if (gatilhosError) {
+        console.error("[agendamentos] erro ao inserir gatilhos:", gatilhosError);
+        setSalvando(false);
+        return;
+      }
     }
 
     if (formAplicarPara === "especificos" && formPacientes.length > 0) {
