@@ -52,7 +52,7 @@ async function enviarMensagem(
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${metaAccessToken}`,
+      Authorization: `Bearer ${process.env.META_SYSTEM_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
