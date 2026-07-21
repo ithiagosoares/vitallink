@@ -8,7 +8,7 @@ export interface Template {
 
 export const TEMPLATES: Template[] = [
   {
-    id: "1",
+    id: "lembrete_consulta_dia_anterior",
     nome: "Lembrete de consulta (dia anterior)",
     categoria: "Lembrete",
     conteudo:
@@ -16,14 +16,14 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "data", "horário"],
   },
   {
-    id: "2",
+    id: "lembrete_consulta_mesmo_dia",
     nome: "Lembrete de consulta (mesmo dia)",
     categoria: "Lembrete",
     conteudo: "Olá, {{1}}! Sua consulta de hoje é às {{2}}. Te espero! 🗓️",
     variaveis: ["nome do paciente", "horário"],
   },
   {
-    id: "3",
+    id: "cobranca_simples",
     nome: "Cobrança simples",
     categoria: "Cobrança",
     conteudo:
@@ -31,7 +31,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "data", "valor", "chave Pix"],
   },
   {
-    id: "4",
+    id: "cobranca_com_vencimento",
     nome: "Cobrança com vencimento",
     categoria: "Cobrança",
     conteudo:
@@ -45,7 +45,7 @@ export const TEMPLATES: Template[] = [
     ],
   },
   {
-    id: "5",
+    id: "confirmacao_agendamento",
     nome: "Confirmação de agendamento",
     categoria: "Agendamento",
     conteudo:
@@ -53,7 +53,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "data", "horário"],
   },
   {
-    id: "6",
+    id: "reagendamento",
     nome: "Reagendamento",
     categoria: "Agendamento",
     conteudo:
@@ -61,7 +61,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "nova data", "novo horário"],
   },
   {
-    id: "7",
+    id: "cancelamento_psicologa",
     nome: "Cancelamento pela psicóloga",
     categoria: "Agendamento",
     conteudo:
@@ -69,7 +69,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "data"],
   },
   {
-    id: "8",
+    id: "confirmacao_pagamento_recebido",
     nome: "Confirmação de pagamento recebido",
     categoria: "Cobrança",
     conteudo:
@@ -77,7 +77,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente", "valor", "data da sessão"],
   },
   {
-    id: "9",
+    id: "retorno_periodo_sem_consulta",
     nome: "Retorno após período sem consulta",
     categoria: "Relacionamento",
     conteudo:
@@ -85,7 +85,7 @@ export const TEMPLATES: Template[] = [
     variaveis: ["nome do paciente"],
   },
   {
-    id: "10",
+    id: "boas_vindas_novo_paciente",
     nome: "Boas-vindas ao novo paciente",
     categoria: "Relacionamento",
     conteudo:
